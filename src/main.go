@@ -35,5 +35,8 @@ func main() {
 		record := lib.CreateRecord(12.7*float64(i), PERIOD)
 		records = append(records, record)
 	}
-	lib.PushData(STATION_TYPE, records)
+
+	dataMap := lib.CreateDataMap(records, "golang-data-map", nil)
+
+	lib.PushData(STATION_TYPE, dataMap)
 }

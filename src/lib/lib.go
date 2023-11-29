@@ -38,6 +38,13 @@ type Station struct {
 	Metadata      map[string]string
 }
 
+type DataMap struct {
+	Name       string
+	Data       []Record
+	Branch     map[string]DataMap
+	Provenance string
+}
+
 type Record struct {
 	Value     interface{}
 	Period    int64
@@ -97,15 +104,15 @@ func SyncStations(stationType string, stations []Station) {
 	log.Println("Syncing stations done.")
 }
 
-func PushData(stationType string, records []Record) {
-	log.Println("Syncing records...")
-	log.Println(records)
+func PushData(stationType string, dataMap DataMap) {
+	log.Println("Pushing records...")
+	log.Println(dataMap)
 
 	url := baseUri + PUSH_RECORDS + "/" + stationType + "?prn=" + prn + "&prv=" + prv
 
-	postToWriter(records, url)
+	postToWriter(dataMap, url)
 
-	log.Println("Syncing records done.")
+	log.Println("Pushing records done.")
 }
 
 func CreateDataType(name string, unit string, description string, rtype string, period int64) DataType {
@@ -143,6 +150,18 @@ func CreateRecord(value interface{}, period int64) Record {
 		Period:    period,
 	}
 	return record
+}
+
+func CreateDataMap(records []Record, name string, branch map[string]DataMap) DataMap {
+	// TODO add some checks
+	var dataMap = DataMap{
+		Name:       name,
+		Data:       records,
+		Provenance: PROVENANCE,
+		// Branch:     branch,
+	}
+
+	return dataMap
 }
 
 func postToWriter(data interface{}, fullUrl string) {
