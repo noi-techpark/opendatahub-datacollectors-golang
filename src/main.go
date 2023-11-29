@@ -14,9 +14,6 @@ const PERIOD int64 = 600
 
 func main() {
 
-	// first create provenance
-	lib.PushProvenance()
-
 	// test data types
 	var dataTypes []lib.DataType
 	dataType := lib.CreateDataType("golang-test", "kg", "Such description", "Instantaneous", PERIOD)

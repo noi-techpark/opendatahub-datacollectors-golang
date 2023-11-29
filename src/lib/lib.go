@@ -64,25 +64,11 @@ var baseUri string = os.Getenv("BASE_URI")
 var prv string = os.Getenv("PROVENANCE_VERSION")
 var prn string = os.Getenv("PROVENANCE_NAME")
 
-func PushProvenance() {
-	log.Println("Pushing provenance...")
-	log.Println("prv: " + prv + " prn: " + prn)
-
-	var provenance = Provenance{
-		DataCollector:        prn,
-		DataCollectorVersion: prv,
-		Uuid:                 "suchUuuid12345678ByGolangDataCollecotr",
-		Lineage:              "go-lang-lineage",
-	}
-
-	url := baseUri + PROVENANCE + "?&prn=" + prn + "&prv=" + prv
-
-	postToWriter(provenance, url)
-
-	log.Println("Pushing provenance done.")
-}
+var provenancePushed bool = false
 
 func SyncDataTypes(stationType string, dataTypes []DataType) {
+	pushProvenance()
+
 	log.Println("Syncing data types...")
 	log.Println(dataTypes)
 
@@ -94,6 +80,8 @@ func SyncDataTypes(stationType string, dataTypes []DataType) {
 }
 
 func SyncStations(stationType string, stations []Station) {
+	pushProvenance()
+
 	log.Println("Syncing stations...")
 	log.Println(stations)
 
@@ -105,6 +93,8 @@ func SyncStations(stationType string, stations []Station) {
 }
 
 func PushData(stationType string, dataMap DataMap) {
+	pushProvenance()
+
 	log.Println("Pushing records...")
 	log.Println(dataMap)
 
@@ -187,4 +177,28 @@ func postToWriter(data interface{}, fullUrl string) {
 	}
 
 	log.Println(res.StatusCode)
+}
+
+func pushProvenance() {
+	if provenancePushed {
+		return
+	}
+
+	log.Println("Pushing provenance...")
+	log.Println("prv: " + prv + " prn: " + prn)
+
+	var provenance = Provenance{
+		DataCollector:        prn,
+		DataCollectorVersion: prv,
+		Uuid:                 "suchUuuid12345678ByGolangDataCollecotr",
+		Lineage:              "go-lang-lineage",
+	}
+
+	url := baseUri + PROVENANCE + "?&prn=" + prn + "&prv=" + prv
+
+	postToWriter(provenance, url)
+
+	log.Println("Pushing provenance done.")
+
+	provenancePushed = true
 }
