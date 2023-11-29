@@ -68,35 +68,9 @@ func PushProvenance() {
 		Lineage:              "go-lang-lineage",
 	}
 
-	// prepare data
-	data, err := json.Marshal(provenance)
-	if err != nil {
-		log.Fatal(err)
-	}
+	url := baseUri + PROVENANCE + "?&prn=" + prn + "&prv=" + prv
 
-	// URL
-	fullUrl := baseUri + PROVENANCE + "?&prn=" + prn + "&prv=" + prv
-	log.Println("fullUri = " + fullUrl)
-	// fullUrl = url.QueryEscape(fullUrl)
-
-	// http client
-	client := http.Client{}
-	req, err := http.NewRequest("POST", fullUrl, bytes.NewBuffer(data))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	req.Header = http.Header{
-		"Content-Type":  {"application/json"},
-		"Authorization": {"Bearer " + auth.GetToken()},
-	}
-
-	res, err := client.Do(req)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Println(res)
+	postToWriter(provenance, url)
 
 	log.Println("Pushing provenance done.")
 }
@@ -105,35 +79,9 @@ func SyncDataTypes(stationType string, dataTypes []DataType) {
 	log.Println("Syncing data types...")
 	log.Println(dataTypes)
 
-	// prepare data
-	data, err := json.Marshal(dataTypes)
-	if err != nil {
-		log.Fatal(err)
-	}
+	url := baseUri + SYNC_DATA_TYPES + "?stationType=" + stationType + "&prn=" + prn + "&prv=" + prv
 
-	// URL
-	fullUrl := baseUri + SYNC_DATA_TYPES + "?stationType=" + stationType + "&prn=" + prn + "&prv=" + prv
-	log.Println("fullUri = " + fullUrl)
-	// fullUrl = url.QueryEscape(fullUrl)
-
-	// http client
-	client := http.Client{}
-	req, err := http.NewRequest("POST", fullUrl, bytes.NewBuffer(data))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	req.Header = http.Header{
-		"Content-Type":  {"application/json"},
-		"Authorization": {"Bearer " + auth.GetToken()},
-	}
-
-	res, err := client.Do(req)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Println(res)
+	postToWriter(dataTypes, url)
 
 	log.Println("Syncing data types done.")
 }
@@ -141,41 +89,22 @@ func SyncDataTypes(stationType string, dataTypes []DataType) {
 func SyncStations(stationType string, stations []Station) {
 	log.Println("Syncing stations...")
 	log.Println(stations)
-	// prepare data
-	data, err := json.Marshal(stations)
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	// URL
-	fullUrl := baseUri + SYNC_STATIONS + "/" + stationType + "?prn=" + prn + "&prv=" + prv
-	log.Println("fullUri = " + fullUrl)
-	// fullUrl = url.QueryEscape(fullUrl)
+	url := baseUri + SYNC_STATIONS + "/" + stationType + "?prn=" + prn + "&prv=" + prv
 
-	// http client
-	client := http.Client{}
-	req, err := http.NewRequest("POST", fullUrl, bytes.NewBuffer(data))
-	if err != nil {
-		log.Fatal(err)
-	}
+	postToWriter(stations, url)
 
-	req.Header = http.Header{
-		"Content-Type":  {"application/json"},
-		"Authorization": {"Bearer " + auth.GetToken()},
-	}
-
-	res, err := client.Do(req)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Println(res)
 	log.Println("Syncing stations done.")
 }
 
-func PushData(records []Record) {
+func PushData(stationType string, records []Record) {
 	log.Println("Syncing records...")
 	log.Println(records)
+
+	url := baseUri + PUSH_RECORDS + "/" + stationType + "?prn=" + prn + "&prv=" + prv
+
+	postToWriter(records, url)
+
 	log.Println("Syncing records done.")
 }
 
@@ -214,4 +143,29 @@ func CreateRecord(value interface{}, period int64) Record {
 		Period:    period,
 	}
 	return record
+}
+
+func postToWriter(data interface{}, fullUrl string) {
+	json, err := json.Marshal(data)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	client := http.Client{}
+	req, err := http.NewRequest("POST", fullUrl, bytes.NewBuffer(json))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	req.Header = http.Header{
+		"Content-Type":  {"application/json"},
+		"Authorization": {"Bearer " + auth.GetToken()},
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println(res.StatusCode)
 }

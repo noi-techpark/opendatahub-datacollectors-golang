@@ -30,11 +30,10 @@ func main() {
 	lib.SyncStations(STATION_TYPE, stations)
 
 	// // test records
-	// var records []lib.Record
-	// for i := 1; i < 12; i++ {
-	// 	record := lib.CreateRecord(12.7 * float64(i), PERIOD)
-	// 	records = append(records, record)
-	// }
-
-	// lib.PushData(records)
+	var records []lib.Record
+	for i := 1; i < 12; i++ {
+		record := lib.CreateRecord(12.7*float64(i), PERIOD)
+		records = append(records, record)
+	}
+	lib.PushData(STATION_TYPE, records)
 }
