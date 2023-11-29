@@ -8,26 +8,33 @@ import (
 	"helloworld/lib"
 )
 
+const STATION_TYPE string = "GolangTest"
+const ORIGIN string = "GolangUniverse"
+const PERIOD int64 = 600
+
 func main() {
+
+	// first create provenance
+	lib.PushProvenance()
 
 	// test data types
 	var dataTypes []lib.DataType
-	dataType := lib.CreateDataType("golang test", "test", "testing golang", "instantaneous", 600)
+	dataType := lib.CreateDataType("golang-test", "kg", "Such description", "Instantaneous", PERIOD)
 	dataTypes = append(dataTypes, dataType)
-	lib.SyncDataTypes(dataTypes)
+	lib.SyncDataTypes(STATION_TYPE, dataTypes)
 
-	// test stations
+	// // test stations
 	var stations []lib.Station
-	station := lib.CreateStation("golang test station")
+	station := lib.CreateStation("golang-test-id", "golang-test-name", STATION_TYPE, 42.1, 11, ORIGIN)
 	stations = append(stations, station)
-	lib.SyncStations(stations)
+	lib.SyncStations(STATION_TYPE, stations)
 
-	// test records
-	var records []lib.Record
-	for i := 1; i < 12; i++ {
-		record := lib.CreateRecord(12.7 * float64(i))
-		records = append(records, record)
-	}
+	// // test records
+	// var records []lib.Record
+	// for i := 1; i < 12; i++ {
+	// 	record := lib.CreateRecord(12.7 * float64(i), PERIOD)
+	// 	records = append(records, record)
+	// }
 
-	lib.PushData(records)
+	// lib.PushData(records)
 }

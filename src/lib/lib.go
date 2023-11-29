@@ -1,17 +1,30 @@
 package lib
 
 import (
+	"bytes"
+	"encoding/json"
 	"log"
+	"net/http"
 	"os"
+	"time"
+
+	"helloworld/auth"
 )
 
+type Provenance struct {
+	Uuid                 string `json:"uuid"`
+	Lineage              string `json:"lineage"`
+	DataCollector        string `json:"dataCollector"`
+	DataCollectorVersion string `json:"dataCollectorVersion"`
+}
+
 type DataType struct {
-	Name        string
-	Unit        string
-	Description string
-	Rtype       string
-	Period      int64
-	Metadata    map[string]string
+	Name        string            `json:"name"`
+	Unit        string            `json:"unit"`
+	Description string            `json:"description"`
+	Rtype       string            `json:"rType"`
+	Period      int64             `json:"period"`
+	Metadata    map[string]string `json:"metadata"`
 }
 
 type Station struct {
@@ -28,30 +41,135 @@ type Station struct {
 type Record struct {
 	Value     interface{}
 	Period    int64
-	CreatedOn uint32
-	Timestamp uint32
+	CreatedOn int64
+	Timestamp int64
 }
 
-var baseUri string = os.Getenv("BASE_URI")
-var authorizationUri string = os.Getenv("OAUTH_AUTH_URI")
-var tokenUri string = os.Getenv("OAUTH_TOKEN_URI")
-var clientId string = os.Getenv("OAUTH_CLIENT_ID")
-var clientName string = os.Getenv("OAUTH_CLIENT_NAME")
-var clientSecret string = os.Getenv("OAUTH_CLIENT_SECRET")
-var scope string = os.Getenv("OAUTH_CLIENT_SCOPE")
+const SYNC_DATA_TYPES string = "/syncDataTypes"
+const SYNC_STATIONS string = "/syncStations"
+const PUSH_RECORDS string = "/pushRecords"
+const GET_DATE_OF_LAST_RECORD string = "/getDateOfLastRecord"
+const STATIONS string = "/stations"
+const PROVENANCE string = "/provenance"
 
-func SyncDataTypes(dataTypes []DataType) {
+var baseUri string = os.Getenv("BASE_URI")
+
+var prv string = os.Getenv("PROVENANCE_VERSION")
+var prn string = os.Getenv("PROVENANCE_NAME")
+
+func PushProvenance() {
+	log.Println("Pushing provenance...")
+	log.Println("prv: " + prv + " prn: " + prn)
+
+	var provenance = Provenance{
+		DataCollector:        prn,
+		DataCollectorVersion: prv,
+		Uuid:                 "suchUuuid12345678ByGolangDataCollecotr",
+		Lineage:              "go-lang-lineage",
+	}
+
+	// prepare data
+	data, err := json.Marshal(provenance)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// URL
+	fullUrl := baseUri + PROVENANCE + "?&prn=" + prn + "&prv=" + prv
+	log.Println("fullUri = " + fullUrl)
+	// fullUrl = url.QueryEscape(fullUrl)
+
+	// http client
+	client := http.Client{}
+	req, err := http.NewRequest("POST", fullUrl, bytes.NewBuffer(data))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	req.Header = http.Header{
+		"Content-Type":  {"application/json"},
+		"Authorization": {"Bearer " + auth.GetToken()},
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println(res)
+
+	log.Println("Pushing provenance done.")
+}
+
+func SyncDataTypes(stationType string, dataTypes []DataType) {
 	log.Println("Syncing data types...")
 	log.Println(dataTypes)
 
-	log.Println("Syncing data types done.")
+	// prepare data
+	data, err := json.Marshal(dataTypes)
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	// URL
+	fullUrl := baseUri + SYNC_DATA_TYPES + "?stationType=" + stationType + "&prn=" + prn + "&prv=" + prv
+	log.Println("fullUri = " + fullUrl)
+	// fullUrl = url.QueryEscape(fullUrl)
+
+	// http client
+	client := http.Client{}
+	req, err := http.NewRequest("POST", fullUrl, bytes.NewBuffer(data))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	req.Header = http.Header{
+		"Content-Type":  {"application/json"},
+		"Authorization": {"Bearer " + auth.GetToken()},
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println(res)
+
+	log.Println("Syncing data types done.")
 }
 
-func SyncStations(stations []Station) {
+func SyncStations(stationType string, stations []Station) {
 	log.Println("Syncing stations...")
 	log.Println(stations)
+	// prepare data
+	data, err := json.Marshal(stations)
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	// URL
+	fullUrl := baseUri + SYNC_STATIONS + "/" + stationType + "?prn=" + prn + "&prv=" + prv
+	log.Println("fullUri = " + fullUrl)
+	// fullUrl = url.QueryEscape(fullUrl)
+
+	// http client
+	client := http.Client{}
+	req, err := http.NewRequest("POST", fullUrl, bytes.NewBuffer(data))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	req.Header = http.Header{
+		"Content-Type":  {"application/json"},
+		"Authorization": {"Bearer " + auth.GetToken()},
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println(res)
 	log.Println("Syncing stations done.")
 }
 
@@ -62,23 +180,38 @@ func PushData(records []Record) {
 }
 
 func CreateDataType(name string, unit string, description string, rtype string, period int64) DataType {
-	var dataType DataType
-	dataType.Name = name
-	dataType.Unit = unit
-	dataType.Description = description
-	dataType.Rtype = rtype
-	dataType.Period = period
-	return dataType
+	// TODO add some checks
+	return DataType{
+		Name:        name,
+		Unit:        unit,
+		Description: description,
+		Rtype:       rtype,
+		Period:      period,
+	}
 }
 
-func CreateStation(name string) Station {
-	var station Station
-	station.Name = name
+func CreateStation(id string, name string, stationType string, lat float64, lon float64, origin string) Station {
+	// TODO add some checks
+	var station = Station{
+		Name:        name,
+		StationType: stationType,
+		Latitude:    lat,
+		Longitude:   lon,
+		Origin:      origin,
+		Id:          id,
+		// Metadata:    metaData,
+		// ParentStation:   parentStation,
+	}
 	return station
 }
 
-func CreateRecord(value interface{}) Record {
-	var record Record
-	record.Value = value
+func CreateRecord(value interface{}, period int64) Record {
+	// TODO add some checks
+	var record = Record{
+		Value:     value,
+		Timestamp: time.Now().Unix(),
+		CreatedOn: time.Now().Unix(),
+		Period:    period,
+	}
 	return record
 }
