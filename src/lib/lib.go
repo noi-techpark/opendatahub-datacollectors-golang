@@ -144,12 +144,19 @@ func CreateRecord(value interface{}, period uint32) Record {
 	return record
 }
 
-func CreateDataMap(stationCode string, datatType string, records []Record) DataMap {
-	// TODO add some checks
+func createDataMap() DataMap {
 	var dataMap = DataMap{
 		Name:       "(default)",
 		Provenance: provenanceUuid,
 		Branch:     make(map[string]DataMap),
+	}
+	return dataMap
+}
+
+func AddRecords(stationCode string, datatType string, records []Record, dataMap *DataMap) {
+
+	if dataMap.Name == "" {
+		*dataMap = createDataMap()
 	}
 
 	dataMap.Branch[stationCode] = DataMap{
@@ -161,8 +168,6 @@ func CreateDataMap(stationCode string, datatType string, records []Record) DataM
 		Name: "(default)",
 		Data: records,
 	}
-
-	return dataMap
 }
 
 func postToWriter(data interface{}, fullUrl string) (string, error) {
@@ -225,5 +230,5 @@ func pushProvenance() {
 
 	provenanceUuid = res
 
-	log.Println("Pushing provenance done. Uuid: ", provenanceUuid)
+	log.Println("Pushing provenance done. UUID: ", provenanceUuid)
 }

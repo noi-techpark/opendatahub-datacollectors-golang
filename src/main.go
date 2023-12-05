@@ -9,6 +9,8 @@ import (
 )
 
 const STATION_TYPE string = "GolangTest"
+const STATION_CODE string = "golang-test-id"
+
 const DATA_TYPE string = "data-type-golang-test"
 const ORIGIN string = "GolangUniverse"
 const PERIOD uint32 = 600
@@ -23,7 +25,7 @@ func main() {
 
 	// // test stations
 	var stations []lib.Station
-	station := lib.CreateStation("golang-test-id", "golang-test-name", STATION_TYPE, 42.1, 11, ORIGIN)
+	station := lib.CreateStation(STATION_CODE, "golang-test-name", STATION_TYPE, 42.1, 11, ORIGIN)
 	stations = append(stations, station)
 	lib.SyncStations(STATION_TYPE, stations)
 
@@ -34,7 +36,9 @@ func main() {
 		records = append(records, record)
 	}
 
-	dataMap := lib.CreateDataMap("golang-test-id", DATA_TYPE, records)
+	var dataMap lib.DataMap
+
+	lib.AddRecords(STATION_CODE, DATA_TYPE, records, &dataMap)
 
 	lib.PushData(STATION_TYPE, dataMap)
 }
