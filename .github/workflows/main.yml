@@ -30,6 +30,19 @@ jobs:
           X_DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
           X_DOCKER_TAG: ${{ env.DOCKER_TAG }}
 
+          X_BASE_URI: https://mobility.share.opendatahub.testingmachine.eu/json
+          X_OAUTH_AUTH_URI: https://auth.opendatahub.testingmachine.eu/auth
+          X_OAUTH_TOKEN_URI: https://auth.opendatahub.testingmachine.eu/auth/realms/noi/protocol/openid-connect/token
+          X_OAUTH_CLIENT_ID: odh-mobility-datacollector-development
+          X_OAUTH_CLIENT_NAME: odh-mobility-datacollector-development
+          X_OAUTH_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET_TEST }}
+          X_OAUTH_CLIENT_SCOPE: openid
+          
+          X_PROVENANCE_VERSION: 0.0.0
+          X_PROVENANCE_NAME: dc-golang-helloword
+          
+          X_LOG_LEVEL: INFO
+
       - name: Build go application
         run: go build -o main
         working-directory: src
