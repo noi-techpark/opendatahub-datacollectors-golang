@@ -9,14 +9,15 @@ import (
 )
 
 const STATION_TYPE string = "GolangTest"
+const DATA_TYPE string = "data-type-golang-test"
 const ORIGIN string = "GolangUniverse"
-const PERIOD int64 = 600
+const PERIOD uint32 = 600
 
 func main() {
 
 	// test data types
 	var dataTypes []lib.DataType
-	dataType := lib.CreateDataType("golang-test", "kg", "Such description", "Instantaneous", PERIOD)
+	dataType := lib.CreateDataType(DATA_TYPE, "kg", "Such description", "Instantaneous", PERIOD)
 	dataTypes = append(dataTypes, dataType)
 	lib.SyncDataTypes(STATION_TYPE, dataTypes)
 
@@ -33,7 +34,7 @@ func main() {
 		records = append(records, record)
 	}
 
-	dataMap := lib.CreateDataMap(records, "golang-data-map", nil)
+	dataMap := lib.CreateDataMap("golang-test-id", DATA_TYPE, records)
 
 	lib.PushData(STATION_TYPE, dataMap)
 }

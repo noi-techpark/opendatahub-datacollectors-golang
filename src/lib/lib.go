@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"log"
@@ -12,7 +13,6 @@ import (
 )
 
 type Provenance struct {
-	Uuid                 string `json:"uuid"`
 	Lineage              string `json:"lineage"`
 	DataCollector        string `json:"dataCollector"`
 	DataCollectorVersion string `json:"dataCollectorVersion"`
@@ -23,33 +23,34 @@ type DataType struct {
 	Unit        string            `json:"unit"`
 	Description string            `json:"description"`
 	Rtype       string            `json:"rType"`
-	Period      int64             `json:"period"`
+	Period      uint32            `json:"period"`
 	Metadata    map[string]string `json:"metadata"`
 }
 
 type Station struct {
-	Id            string
-	Name          string
-	StationType   string
-	Latitude      float64
-	Longitude     float64
-	Origin        string
-	ParentStation string
-	Metadata      map[string]string
+	Id            string            `json:"id"`
+	Name          string            `json:"name"`
+	StationType   string            `json:"stationType"`
+	Latitude      float64           `json:"latitude"`
+	Longitude     float64           `json:"longitude"`
+	Origin        string            `json:"origin"`
+	ParentStation string            `json:"parentStation"`
+	Metadata      map[string]string `json:"metadata"`
 }
 
 type DataMap struct {
-	Name       string
-	Data       []Record
-	Branch     map[string]DataMap
-	Provenance string
+	Name       string             `json:"name"`
+	Data       []Record           `json:"data"`
+	Branch     map[string]DataMap `json:"branch"`
+	Provenance string             `json:"provenance"`
 }
 
 type Record struct {
-	Value     interface{}
-	Period    int64
-	CreatedOn int64
-	Timestamp int64
+	Value     interface{} `json:"value"`
+	Period    uint32      `json:"period"`
+	CreatedOn int64       `json:"createdOn"`
+	Timestamp int64       `json:"timestamp"`
+	Type      string      `json:"_t"`
 }
 
 const SYNC_DATA_TYPES string = "/syncDataTypes"
@@ -59,12 +60,12 @@ const GET_DATE_OF_LAST_RECORD string = "/getDateOfLastRecord"
 const STATIONS string = "/stations"
 const PROVENANCE string = "/provenance"
 
+var provenanceUuid string
+
 var baseUri string = os.Getenv("BASE_URI")
 
 var prv string = os.Getenv("PROVENANCE_VERSION")
 var prn string = os.Getenv("PROVENANCE_NAME")
-
-var provenancePushed bool = false
 
 func SyncDataTypes(stationType string, dataTypes []DataType) {
 	pushProvenance()
@@ -105,7 +106,7 @@ func PushData(stationType string, dataMap DataMap) {
 	log.Println("Pushing records done.")
 }
 
-func CreateDataType(name string, unit string, description string, rtype string, period int64) DataType {
+func CreateDataType(name string, unit string, description string, rtype string, period uint32) DataType {
 	// TODO add some checks
 	return DataType{
 		Name:        name,
@@ -131,30 +132,40 @@ func CreateStation(id string, name string, stationType string, lat float64, lon 
 	return station
 }
 
-func CreateRecord(value interface{}, period int64) Record {
+func CreateRecord(value interface{}, period uint32) Record {
 	// TODO add some checks
 	var record = Record{
 		Value:     value,
 		Timestamp: time.Now().Unix(),
 		CreatedOn: time.Now().Unix(),
 		Period:    period,
+		Type:      "it.bz.idm.bdp.dto.SimpleRecordDto",
 	}
 	return record
 }
 
-func CreateDataMap(records []Record, name string, branch map[string]DataMap) DataMap {
+func CreateDataMap(stationCode string, datatType string, records []Record) DataMap {
 	// TODO add some checks
 	var dataMap = DataMap{
-		Name:       name,
-		Data:       records,
-		Provenance: PROVENANCE,
-		// Branch:     branch,
+		Name:       "(default)",
+		Provenance: provenanceUuid,
+		Branch:     make(map[string]DataMap),
+	}
+
+	dataMap.Branch[stationCode] = DataMap{
+		Name:   "(default)",
+		Branch: make(map[string]DataMap),
+	}
+
+	dataMap.Branch[stationCode].Branch[datatType] = DataMap{
+		Name: "(default)",
+		Data: records,
 	}
 
 	return dataMap
 }
 
-func postToWriter(data interface{}, fullUrl string) {
+func postToWriter(data interface{}, fullUrl string) (string, error) {
 	json, err := json.Marshal(data)
 	if err != nil {
 		log.Fatal(err)
@@ -177,10 +188,21 @@ func postToWriter(data interface{}, fullUrl string) {
 	}
 
 	log.Println(res.StatusCode)
+
+	scanner := bufio.NewScanner(res.Body)
+	for i := 0; scanner.Scan() && i < 5; i++ {
+		return scanner.Text(), nil
+	}
+
+	err = scanner.Err()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return "", err
 }
 
 func pushProvenance() {
-	if provenancePushed {
+	if len(provenanceUuid) > 0 {
 		return
 	}
 
@@ -190,15 +212,18 @@ func pushProvenance() {
 	var provenance = Provenance{
 		DataCollector:        prn,
 		DataCollectorVersion: prv,
-		Uuid:                 "suchUuuid12345678ByGolangDataCollecotr",
 		Lineage:              "go-lang-lineage",
 	}
 
 	url := baseUri + PROVENANCE + "?&prn=" + prn + "&prv=" + prv
 
-	postToWriter(provenance, url)
+	res, err := postToWriter(provenance, url)
 
-	log.Println("Pushing provenance done.")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	provenancePushed = true
+	provenanceUuid = res
+
+	log.Println("Pushing provenance done. Uuid: ", provenanceUuid)
 }
