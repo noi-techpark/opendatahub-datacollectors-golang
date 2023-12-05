@@ -31,7 +31,7 @@ jobs:
           X_DOCKER_TAG: ${{ env.DOCKER_TAG }}
 
       - name: Build go application
-        run: go build helloworld -o main
+        run: go build -o main
         working-directory: src
 
       - name: Build and push 
