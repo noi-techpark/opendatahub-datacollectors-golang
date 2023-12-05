@@ -69,13 +69,13 @@ var prn string = os.Getenv("PROVENANCE_NAME")
 func SyncDataTypes(stationType string, dataTypes []DataType) {
 	pushProvenance()
 
-	slog.Info("Syncing data types...")
+	slog.Debug("Syncing data types...")
 
 	url := baseUri + SYNC_DATA_TYPES + "?stationType=" + stationType + "&prn=" + prn + "&prv=" + prv
 
 	postToWriter(dataTypes, url)
 
-	slog.Info("Syncing data types done.")
+	slog.Debug("Syncing data types done.")
 }
 
 func SyncStations(stationType string, stations []Station) {
