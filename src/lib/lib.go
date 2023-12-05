@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"time"
@@ -48,7 +48,6 @@ type DataMap struct {
 type Record struct {
 	Value     interface{} `json:"value"`
 	Period    uint32      `json:"period"`
-	CreatedOn int64       `json:"createdOn"`
 	Timestamp int64       `json:"timestamp"`
 	Type      string      `json:"_t"`
 }
@@ -70,40 +69,37 @@ var prn string = os.Getenv("PROVENANCE_NAME")
 func SyncDataTypes(stationType string, dataTypes []DataType) {
 	pushProvenance()
 
-	log.Println("Syncing data types...")
-	log.Println(dataTypes)
+	slog.Info("Syncing data types...")
 
 	url := baseUri + SYNC_DATA_TYPES + "?stationType=" + stationType + "&prn=" + prn + "&prv=" + prv
 
 	postToWriter(dataTypes, url)
 
-	log.Println("Syncing data types done.")
+	slog.Info("Syncing data types done.")
 }
 
 func SyncStations(stationType string, stations []Station) {
 	pushProvenance()
 
-	log.Println("Syncing stations...")
-	log.Println(stations)
+	slog.Info("Syncing stations...")
 
 	url := baseUri + SYNC_STATIONS + "/" + stationType + "?prn=" + prn + "&prv=" + prv
 
 	postToWriter(stations, url)
 
-	log.Println("Syncing stations done.")
+	slog.Info("Syncing stations done.")
 }
 
 func PushData(stationType string, dataMap DataMap) {
 	pushProvenance()
 
-	log.Println("Pushing records...")
-	log.Println(dataMap)
+	slog.Info("Pushing records...")
 
 	url := baseUri + PUSH_RECORDS + "/" + stationType + "?prn=" + prn + "&prv=" + prv
 
 	postToWriter(dataMap, url)
 
-	log.Println("Pushing records done.")
+	slog.Info("Pushing records done.")
 }
 
 func CreateDataType(name string, unit string, description string, rtype string, period uint32) DataType {
@@ -137,7 +133,6 @@ func CreateRecord(value interface{}, period uint32) Record {
 	var record = Record{
 		Value:     value,
 		Timestamp: time.Now().Unix(),
-		CreatedOn: time.Now().Unix(),
 		Period:    period,
 		Type:      "it.bz.idm.bdp.dto.SimpleRecordDto",
 	}
@@ -173,13 +168,13 @@ func AddRecords(stationCode string, datatType string, records []Record, dataMap 
 func postToWriter(data interface{}, fullUrl string) (string, error) {
 	json, err := json.Marshal(data)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("error", err)
 	}
 
 	client := http.Client{}
 	req, err := http.NewRequest("POST", fullUrl, bytes.NewBuffer(json))
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("error", err)
 	}
 
 	req.Header = http.Header{
@@ -189,10 +184,8 @@ func postToWriter(data interface{}, fullUrl string) (string, error) {
 
 	res, err := client.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("error", err)
 	}
-
-	log.Println(res.StatusCode)
 
 	scanner := bufio.NewScanner(res.Body)
 	for i := 0; scanner.Scan() && i < 5; i++ {
@@ -201,7 +194,7 @@ func postToWriter(data interface{}, fullUrl string) (string, error) {
 
 	err = scanner.Err()
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("error", err)
 	}
 	return "", err
 }
@@ -211,8 +204,8 @@ func pushProvenance() {
 		return
 	}
 
-	log.Println("Pushing provenance...")
-	log.Println("prv: " + prv + " prn: " + prn)
+	slog.Info("Pushing provenance...")
+	slog.Info("prv: " + prv + " prn: " + prn)
 
 	var provenance = Provenance{
 		DataCollector:        prn,
@@ -225,10 +218,10 @@ func pushProvenance() {
 	res, err := postToWriter(provenance, url)
 
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("error", err)
 	}
 
 	provenanceUuid = res
 
-	log.Println("Pushing provenance done. UUID: ", provenanceUuid)
+	slog.Info("Pushing provenance done. UUID: " + provenanceUuid)
 }

@@ -6,6 +6,8 @@ package main
 
 import (
 	"helloworld/lib"
+	"log/slog"
+	"os"
 )
 
 const STATION_TYPE string = "GolangTest"
@@ -16,6 +18,8 @@ const ORIGIN string = "GolangUniverse"
 const PERIOD uint32 = 600
 
 func main() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
 
 	// test data types
 	var dataTypes []lib.DataType

@@ -3,7 +3,7 @@ package auth
 import (
 	"encoding/json"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
@@ -39,25 +39,25 @@ func GetToken() string {
 
 	req, err := http.NewRequest("POST", tokenUri, body)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("error", err)
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("error", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusOK {
 		bodyBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
-			log.Fatal(err)
+			slog.Error("error", err)
 		}
 
 		err = json.Unmarshal(bodyBytes, &token)
 		if err != nil {
-			log.Fatal(err)
+			slog.Error("error", err)
 		}
 	}
 
