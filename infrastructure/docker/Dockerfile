@@ -6,4 +6,4 @@ WORKDIR app
 
 COPY src/main main
 
-CMD [ "main"]
+CMD [ "./main"]
