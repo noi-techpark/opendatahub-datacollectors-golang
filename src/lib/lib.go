@@ -225,5 +225,5 @@ func pushProvenance() {
 
 	provenanceUuid = res
 
-	slog.Info("Pushing provenance done. UUID: " + provenanceUuid)
+	slog.Info("Pushing provenance done.")
 }

@@ -30,7 +30,7 @@ var token Token
 func GetToken() string {
 	ts := time.Now().Unix()
 
-	if len(token.AccessToken) > 0 || ts > token.RefreshExpiresIn {
+	if len(token.AccessToken) == 0 || ts > token.RefreshExpiresIn {
 		// if no token is available or refreshToken is expired, get new token
 		newToken()
 	} else if ts > token.ExpiresIn {
