@@ -44,7 +44,7 @@ jobs:
           
           X_LOG_LEVEL: INFO
 
-          X_SCHEDULER_CRON: "* */10 * * * *"
+          X_SCHEDULER_CRON: "0 */10 * * * *"
 
       - name: Build go application
         run: go build -o main
