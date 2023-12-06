@@ -8,33 +8,66 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 )
 
 type Token struct {
 	AccessToken      string `json:"access_token"`
-	ExpiresIn        uint64 `json:"expires_in"`
-	NotBeforePolicy  uint64 `json:"not-before-policy"`
-	RefreshExpiresIn uint64 `json:"refresh_expires_in"`
+	ExpiresIn        int64  `json:"expires_in"`
+	NotBeforePolicy  int64  `json:"not-before-policy"`
+	RefreshExpiresIn int64  `json:"refresh_expires_in"`
 	TokenType        string `json:"token_type"`
+	RefreshToken     string `json:"refresh_token"`
 	Scope            string
 }
 
 var tokenUri string = os.Getenv("OAUTH_TOKEN_URI")
 var clientId string = os.Getenv("OAUTH_CLIENT_ID")
 var clientSecret string = os.Getenv("OAUTH_CLIENT_SECRET")
-var scope string = os.Getenv("OAUTH_CLIENT_SCOPE")
 
 var token Token
 
 func GetToken() string {
-	if len(token.AccessToken) > 0 {
-		return token.AccessToken
+	ts := time.Now().Unix()
+
+	if len(token.AccessToken) > 0 || ts > token.RefreshExpiresIn {
+		// if no token is available or refreshToken is expired, get new token
+		newToken()
+	} else if ts > token.ExpiresIn {
+		// if no token is expired, refresh it
+		refreshToken()
 	}
+
+	return token.AccessToken
+}
+
+func refreshToken() {
+	slog.Info("Refreshing token...")
 
 	params := url.Values{}
 	params.Add("client_id", clientId)
 	params.Add("client_secret", clientSecret)
+	params.Add("grant_type", `refresh_token`)
+	params.Add("refresh_token", token.RefreshToken)
+
+	authRequest(params)
+
+	slog.Info("Refreshing token done.")
+}
+
+func newToken() {
+	slog.Info("Getting new token...")
+	params := url.Values{}
+	params.Add("client_id", clientId)
+	params.Add("client_secret", clientSecret)
 	params.Add("grant_type", `client_credentials`)
+
+	authRequest(params)
+
+	slog.Info("Getting new token done.")
+}
+
+func authRequest(params url.Values) {
 	body := strings.NewReader(params.Encode())
 
 	req, err := http.NewRequest("POST", tokenUri, body)
@@ -60,6 +93,4 @@ func GetToken() string {
 			slog.Error("error", err)
 		}
 	}
-
-	return token.AccessToken
 }
