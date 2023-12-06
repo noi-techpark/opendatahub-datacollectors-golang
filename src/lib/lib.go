@@ -187,6 +187,8 @@ func postToWriter(data interface{}, fullUrl string) (string, error) {
 		slog.Error("error", err)
 	}
 
+	slog.Info(res.Status)
+
 	scanner := bufio.NewScanner(res.Body)
 	for i := 0; scanner.Scan() && i < 5; i++ {
 		return scanner.Text(), nil

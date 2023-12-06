@@ -7,8 +7,10 @@ package main
 import (
 	"helloworld/lib"
 	"helloworld/log"
-
 	"log/slog"
+	"time"
+
+	"github.com/go-co-op/gocron"
 )
 
 const STATION_TYPE string = "GolangTest"
@@ -21,8 +23,15 @@ const PERIOD uint32 = 600
 func main() {
 	log.InitLogger()
 
-	slog.Debug("Just testing DEBUG logger")
+	// start cron job
+	s := gocron.NewScheduler(time.UTC)
+	s.Every(1).Hours().Do(job)
+	s.StartBlocking()
 
+}
+
+func job() {
+	slog.Info("Cron job started...")
 	// test data types
 	var dataTypes []lib.DataType
 	dataType := lib.CreateDataType(DATA_TYPE, "kg", "Such description", "Instantaneous", PERIOD)
@@ -47,4 +56,6 @@ func main() {
 	lib.AddRecords(STATION_CODE, DATA_TYPE, records, &dataMap)
 
 	lib.PushData(STATION_TYPE, dataMap)
+
+	slog.Info("Cron job done.")
 }
