@@ -8,6 +8,7 @@ import (
 	"helloworld/lib"
 	"helloworld/log"
 	"log/slog"
+	"os"
 	"time"
 
 	"github.com/go-co-op/gocron"
@@ -23,9 +24,17 @@ const PERIOD uint32 = 600
 func main() {
 	log.InitLogger()
 
+	cron := os.Getenv("SCHEDULER_CRON")
+	slog.Debug("Cron defined as: " + cron)
+
+	if len(cron) == 0 {
+		slog.Error("Cron job definition in env missing")
+		os.Exit(1)
+	}
+
 	// start cron job
 	s := gocron.NewScheduler(time.UTC)
-	s.Every(1).Hours().Do(job)
+	s.CronWithSeconds(cron).Do(job)
 	s.StartBlocking()
 
 }

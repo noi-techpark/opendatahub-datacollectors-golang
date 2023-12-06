@@ -44,6 +44,8 @@ jobs:
           
           X_LOG_LEVEL: INFO
 
+          X_SCHEDULER_CRON: "* */10 * * * *"
+
       - name: Build go application
         run: go build -o main
         working-directory: src
@@ -62,42 +64,3 @@ jobs:
           docker-username: 'noi-techpark-bot'
           docker-password: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
           project-name: ${{ env.PROJECT_NAME }}
-
-#   deploy-prod:
-#     runs-on: ubuntu-20.04
-#     if: github.ref == 'refs/heads/prod'
-#     concurrency: deploy-prod
-#     steps:
-#       - name: Checkout source code
-#         uses: actions/checkout@v3
-
-#       - name: Setup go
-#         uses: actions/setup-go@v3
-#         with:
-#           go-version: '^1.17.6'
-
-#       - name: Create .env file
-#         uses: noi-techpark/github-actions/env-file@v2
-#         env:
-#           X_COMPOSE_PROJECT_NAME: ${{ env.PROJECT_NAME }}
-#           X_DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
-#           X_DOCKER_TAG: ${{ env.DOCKER_TAG }}
-#           X_SERVER_PORT: ${{ env.SERVER_PORT }}
-
-#       - name: Build go application
-#         run: go build noi-sd-ws
-
-#       - name: Build and push 
-#         uses: noi-techpark/github-actions/docker-build-and-push@v2
-#         with:
-#           docker-username: ${{ github.actor }}
-#           docker-password: ${{ secrets.GITHUB_TOKEN }}
-
-#       - name: Deploy application
-#         uses: noi-techpark/github-actions/docker-deploy@v2
-#         with:
-#           hosts: 'prod'
-#           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-#           docker-username: 'noi-techpark-bot'
-#           docker-password: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-#           project-name: ${{ env.PROJECT_NAME }}
