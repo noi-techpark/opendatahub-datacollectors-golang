@@ -37,6 +37,9 @@ func main() {
 	s.CronWithSeconds(cron).Do(job)
 	s.StartBlocking()
 
+	slog.Info("Start job for first time on startup now.")
+	job()
+
 }
 
 func job() {

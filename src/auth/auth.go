@@ -27,13 +27,15 @@ var clientSecret string = os.Getenv("OAUTH_CLIENT_SECRET")
 
 var token Token
 
+var tokenExpiry int64
+
 func GetToken() string {
 	ts := time.Now().Unix()
 
-	if len(token.AccessToken) == 0 || ts > token.RefreshExpiresIn {
+	if len(token.AccessToken) == 0 {
 		// if no token is available or refreshToken is expired, get new token
 		newToken()
-	} else if ts > token.ExpiresIn {
+	} else if ts > tokenExpiry {
 		// if no token is expired, refresh it
 		refreshToken()
 	}
@@ -93,4 +95,7 @@ func authRequest(params url.Values) {
 			slog.Error("error", err)
 		}
 	}
+
+	// calculate token expiry timestamp with 120 seconds margin
+	tokenExpiry = time.Now().Unix() + token.ExpiresIn - 120
 }
