@@ -32,14 +32,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	slog.Info("Start job for first time on startup now.")
+	job()
+
 	// start cron job
 	s := gocron.NewScheduler(time.UTC)
 	s.CronWithSeconds(cron).Do(job)
 	s.StartBlocking()
-
-	slog.Info("Start job for first time on startup now.")
-	job()
-
 }
 
 func job() {
