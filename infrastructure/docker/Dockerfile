@@ -5,6 +5,6 @@ RUN apt-get update && apt-get install -y libc6
 
 WORKDIR app
 
-COPY main main
+COPY src/main main
 
 CMD [ "./main"]
