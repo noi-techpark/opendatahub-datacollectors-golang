@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -96,6 +97,8 @@ func authRequest(params url.Values) {
 		}
 	}
 
-	// calculate token expiry timestamp with 120 seconds margin
-	tokenExpiry = time.Now().Unix() + token.ExpiresIn - 120
+	// calculate token expiry timestamp with 600 seconds margin
+	tokenExpiry = time.Now().Unix() + token.ExpiresIn - 600
+
+	slog.Debug("auth token expires in " + strconv.FormatInt(tokenExpiry, 10))
 }
