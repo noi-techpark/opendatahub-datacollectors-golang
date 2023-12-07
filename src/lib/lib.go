@@ -69,7 +69,7 @@ func SyncDataTypes(stationType string, dataTypes []DataType) {
 
 	slog.Debug("Syncing data types...")
 
-	url := baseUri + syncDataTypes + "?stationType=" + stationType + "&prn=" + prn + "&prv=" + prv
+	url := baseUri + syncDataTypesPath + "?stationType=" + stationType + "&prn=" + prn + "&prv=" + prv
 
 	postToWriter(dataTypes, url)
 
