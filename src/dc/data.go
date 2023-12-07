@@ -13,16 +13,14 @@ import (
 )
 
 func GetData() []byte {
+	slog.Info("Getting file from S3 bucket...")
+
 	region := os.Getenv("AWS_REGION")
 	bucket := os.Getenv("AWS_BUCKET_NAME")
 	file := os.Getenv("AWS_FILE_NAME")
 
 	accessKey := os.Getenv("AWS_ACCESS_KEY")
 	secretKey := os.Getenv("AWS_SECRET_KEY")
-
-	slog.Info("region " + region)
-	slog.Info("bucket " + bucket)
-	slog.Info("file " + file)
 
 	buf := aws.NewWriteAtBuffer([]byte{})
 	session, err := session.NewSession(&aws.Config{
@@ -43,7 +41,7 @@ func GetData() []byte {
 		slog.Error("download error", err)
 	}
 
-	slog.Info("Bytes " + strconv.FormatInt(numBytes, 10) + " counted")
+	slog.Info("Getting file done. " + strconv.FormatInt(numBytes, 10) + " bytes counted.")
 
 	return buf.Bytes()
 }
