@@ -13,7 +13,7 @@ env:
 jobs:
   deploy-test:
     runs-on: ubuntu-22.04
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/prod'
     concurrency: deploy-test
     steps:
       - name: Checkout source code
