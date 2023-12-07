@@ -56,13 +56,15 @@ type Value struct {
 	Value interface{} `json:"value"`
 }
 
-func Mapping(data []byte) {
+func Mapping(data []byte) Forecast {
 	var forecast Forecast
 
 	err := json.Unmarshal(data, &forecast)
 	if err != nil {
 		slog.Error("error", err)
 	}
+
+	return forecast
 }
 
 func MapQuantitative(value string) string {

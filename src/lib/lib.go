@@ -50,12 +50,12 @@ type Record struct {
 	Type      string      `json:"_t"`
 }
 
-const SYNC_DATA_TYPES string = "/syncDataTypes"
-const SYNC_STATIONS string = "/syncStations"
-const PUSH_RECORDS string = "/pushRecords"
-const GET_DATE_OF_LAST_RECORD string = "/getDateOfLastRecord"
-const STATIONS string = "/stations"
-const PROVENANCE string = "/provenance"
+const syncDataTypesPath string = "/syncDataTypes"
+const syncStationsPath string = "/syncStations"
+const pushRecordsPath string = "/pushRecords"
+const getDateOfLastRecordPath string = "/getDateOfLastRecord"
+const stationsPath string = "/stations"
+const provenancePath string = "/provenance"
 
 var provenanceUuid string
 
@@ -69,7 +69,7 @@ func SyncDataTypes(stationType string, dataTypes []DataType) {
 
 	slog.Debug("Syncing data types...")
 
-	url := baseUri + SYNC_DATA_TYPES + "?stationType=" + stationType + "&prn=" + prn + "&prv=" + prv
+	url := baseUri + syncDataTypes + "?stationType=" + stationType + "&prn=" + prn + "&prv=" + prv
 
 	postToWriter(dataTypes, url)
 
@@ -81,7 +81,7 @@ func SyncStations(stationType string, stations []Station) {
 
 	slog.Info("Syncing stations...")
 
-	url := baseUri + SYNC_STATIONS + "/" + stationType + "?prn=" + prn + "&prv=" + prv
+	url := baseUri + syncStationsPath + "/" + stationType + "?prn=" + prn + "&prv=" + prv
 
 	postToWriter(stations, url)
 
@@ -93,21 +93,20 @@ func PushData(stationType string, dataMap DataMap) {
 
 	slog.Info("Pushing records...")
 
-	url := baseUri + PUSH_RECORDS + "/" + stationType + "?prn=" + prn + "&prv=" + prv
+	url := baseUri + pushRecordsPath + "/" + stationType + "?prn=" + prn + "&prv=" + prv
 
 	postToWriter(dataMap, url)
 
 	slog.Info("Pushing records done.")
 }
 
-func CreateDataType(name string, unit string, description string, rtype string, period uint32) DataType {
+func CreateDataType(name string, unit string, description string, rtype string) DataType {
 	// TODO add some checks
 	return DataType{
 		Name:        name,
 		Unit:        unit,
 		Description: description,
 		Rtype:       rtype,
-		Period:      period,
 	}
 }
 
@@ -213,7 +212,7 @@ func pushProvenance() {
 		Lineage:              "go-lang-lineage",
 	}
 
-	url := baseUri + PROVENANCE + "?&prn=" + prn + "&prv=" + prv
+	url := baseUri + provenancePath + "?&prn=" + prn + "&prv=" + prv
 
 	res, err := postToWriter(provenance, url)
 
