@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"os"
 	"time"
-
-	"helloworld/auth"
 )
 
 type Provenance struct {
@@ -179,7 +177,7 @@ func postToWriter(data interface{}, fullUrl string) (string, error) {
 
 	req.Header = http.Header{
 		"Content-Type":  {"application/json"},
-		"Authorization": {"Bearer " + auth.GetToken()},
+		"Authorization": {"Bearer " + GetToken()},
 	}
 
 	res, err := client.Do(req)
