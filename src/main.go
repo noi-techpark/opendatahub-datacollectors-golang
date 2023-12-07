@@ -19,6 +19,7 @@ func main() {
 	log.InitLogger()
 
 	dc.DataTypes()
+	dc.DataTypesModel()
 
 	cron := os.Getenv("SCHEDULER_CRON")
 	slog.Debug("Cron defined as: " + cron)

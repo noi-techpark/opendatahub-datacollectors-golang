@@ -38,7 +38,6 @@ func Job() {
 
 	var stations []lib.Station
 	var dataMap lib.DataMap
-	var records []lib.Record
 
 	modelTs := dateToTs(forecast.Info.CurrentModelRun)
 	slog.Debug("model timestamp " + fmt.Sprint(modelTs))
@@ -63,6 +62,8 @@ func Job() {
 		// TODO add municipality mapping with data from Open Data Hub
 		station := lib.CreateStation(mun.Code, mun.NameDe+"_"+mun.NameIt, stationTypeData, bzLat, bzLon, origin)
 		station.ParentStation = modelStation.Id
+
+		var records []lib.Record
 
 		// temperature min 24 hours
 		for _, value := range mun.TempMin24.Data {
@@ -132,8 +133,7 @@ func dateToTs(date string) int64 {
 	if err != nil {
 		slog.Error("error", err)
 	}
-	modelTs := time.UnixMilli()
-	return modelTs
+	return time.UnixMilli()
 }
 
 func DataTypesModel() {
