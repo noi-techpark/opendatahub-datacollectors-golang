@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
-func GetFile() {
+func GetData() []byte {
 	region := os.Getenv("AWS_REGION")
 	bucket := os.Getenv("AWS_BUCKET_NAME")
 	file := os.Getenv("AWS_FILE_NAME")
@@ -43,5 +43,7 @@ func GetFile() {
 		slog.Error("download error", err)
 	}
 
-	slog.Info("Bytes " + strconv.FormatInt(numBytes, 10) + "file downloaded " + string(buf.Bytes()))
+	slog.Info("Bytes " + strconv.FormatInt(numBytes, 10) + " counted")
+
+	return buf.Bytes()
 }

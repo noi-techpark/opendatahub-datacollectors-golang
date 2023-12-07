@@ -26,7 +26,7 @@ const PERIOD uint32 = 600
 func main() {
 	log.InitLogger()
 
-	dc.GetFile()
+	job()
 
 	cron := os.Getenv("SCHEDULER_CRON")
 	slog.Debug("Cron defined as: " + cron)
@@ -76,5 +76,5 @@ func testJob() {
 }
 
 func job() {
-
+	dc.Mapping(dc.GetData())
 }
