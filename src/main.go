@@ -18,7 +18,7 @@ import (
 func main() {
 	log.InitLogger()
 
-	dc.Job()
+	dc.DataTypes()
 
 	cron := os.Getenv("SCHEDULER_CRON")
 	slog.Debug("Cron defined as: " + cron)
@@ -29,7 +29,7 @@ func main() {
 	}
 
 	// slog.Info("Start job for first time on startup now.")
-	// testJob()
+	// test.TestJob()
 
 	// start cron job
 	s := gocron.NewScheduler(time.UTC)

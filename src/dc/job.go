@@ -1,6 +1,11 @@
 package dc
 
-import "helloworld/lib"
+import (
+	"fmt"
+	"helloworld/lib"
+	"log/slog"
+	"time"
+)
 
 const stationTypeModel string = "WeatherForecastService"
 const stationTypeData string = "WeatherForecast"
@@ -21,24 +26,114 @@ const precipitationSum string = "forecast-precipitation-sum"
 const precipitationMax string = "forecast-precipitation-max"
 const precipitationMin string = "forecast-precipitation-min"
 
+const period3 uint64 = 10800
+const period12 uint64 = 43200
+const period24 uint64 = 86400
+
 func Job() {
 	forecast := Mapping(GetData())
-	var stations []lib.Station
 	var modelStations []lib.Station
+	var modelDataMap lib.DataMap
+	var modelRecords []lib.Record
 
+	var stations []lib.Station
+	var dataMap lib.DataMap
+	var records []lib.Record
+
+	modelTs := dateToTs(forecast.Info.CurrentModelRun)
+	slog.Debug("model timestamp " + fmt.Sprint(modelTs))
+
+	////////////////////
+	// Model
+	////////////////////
 	modelStation := lib.CreateStation(forecast.Info.Model, forecast.Info.Model, stationTypeModel, bzLat, bzLon, origin)
 	modelStations = append(modelStations, modelStation)
 
+	modelRecords = append(modelRecords, lib.CreateRecord(modelTs, forecast.Info.AbsTempMax, period12))
+	modelRecords = append(modelRecords, lib.CreateRecord(modelTs, forecast.Info.AbsTempMin, period12))
+	modelRecords = append(modelRecords, lib.CreateRecord(modelTs, forecast.Info.AbsPrecMax, period12))
+	modelRecords = append(modelRecords, lib.CreateRecord(modelTs, forecast.Info.AbsPrecMin, period12))
+
+	lib.AddRecords(modelStation.Id, airTemperatureMin, modelRecords, &modelDataMap)
+
+	////////////////////
+	// Forecast Data
+	////////////////////
 	for _, mun := range forecast.Municipalities {
 		// TODO add municipality mapping with data from Open Data Hub
 		station := lib.CreateStation(mun.Code, mun.NameDe+"_"+mun.NameIt, stationTypeData, bzLat, bzLon, origin)
 		station.ParentStation = modelStation.Id
 
+		// temperature min 24 hours
+		for _, value := range mun.TempMin24.Data {
+			records = append(records, lib.CreateRecord(dateToTs(value.Date), value.Value, period24))
+		}
+		// temperature max 24 hours
+		for _, value := range mun.TempMax24.Data {
+			records = append(records, lib.CreateRecord(dateToTs(value.Date), value.Value, period24))
+		}
+		// temperature every 3 hours
+		for _, value := range mun.Temp3.Data {
+			records = append(records, lib.CreateRecord(dateToTs(value.Date), value.Value, period3))
+		}
+		// sunshine duration 24 hours
+		for _, value := range mun.Ssd24.Data {
+			records = append(records, lib.CreateRecord(dateToTs(value.Date), value.Value, period24))
+		}
+		// precipitation probability 3 hours
+		for _, value := range mun.PrecProb3.Data {
+			records = append(records, lib.CreateRecord(dateToTs(value.Date), value.Value, period3))
+		}
+		// probably precipitation 24 hours
+		for _, value := range mun.PrecProb24.Data {
+			records = append(records, lib.CreateRecord(dateToTs(value.Date), value.Value, period24))
+		}
+		// probably precipitation sum 3 hours
+		for _, value := range mun.PrecSum3.Data {
+			records = append(records, lib.CreateRecord(dateToTs(value.Date), value.Value, period3))
+		}
+		// probably precipitation sum 24 hours
+		for _, value := range mun.PrecSum24.Data {
+			records = append(records, lib.CreateRecord(dateToTs(value.Date), value.Value, period24))
+		}
+		// wind direction 3 hours
+		for _, value := range mun.WindDir3.Data {
+			records = append(records, lib.CreateRecord(dateToTs(value.Date), value.Value, period3))
+		}
+		// wind speed 3 hours
+		for _, value := range mun.WindSpd3.Data {
+			records = append(records, lib.CreateRecord(dateToTs(value.Date), value.Value, period3))
+		}
+		// weather status symbols 3 hours
+		for _, value := range mun.Symbols3.Data {
+			records = append(records, lib.CreateRecord(dateToTs(value.Date), MapQuantitative(value.Value.(string)), period3))
+		}
+		// weather status symbols 24 hours
+		for _, value := range mun.Symbols24.Data {
+			records = append(records, lib.CreateRecord(dateToTs(value.Date), MapQuantitative(value.Value.(string)), period24))
+		}
+
 		stations = append(stations, station)
+		lib.AddRecords(station.Id, airTemperatureMin, records, &dataMap)
 	}
 
+	// sync stations
 	lib.SyncStations(stationTypeModel, modelStations)
 	lib.SyncStations(stationTypeData, stations)
+
+	// push data
+	lib.PushData(stationTypeData, dataMap)
+	lib.PushData(stationTypeModel, modelDataMap)
+
+}
+
+func dateToTs(date string) int64 {
+	time, err := time.Parse(time.RFC3339Nano, date)
+	if err != nil {
+		slog.Error("error", err)
+	}
+	modelTs := time.UnixMilli()
+	return modelTs
 }
 
 func DataTypesModel() {

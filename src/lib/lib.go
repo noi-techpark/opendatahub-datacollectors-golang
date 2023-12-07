@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"time"
 )
 
 type Provenance struct {
@@ -45,7 +44,7 @@ type DataMap struct {
 
 type Record struct {
 	Value     interface{} `json:"value"`
-	Period    uint32      `json:"period"`
+	Period    uint64      `json:"period"`
 	Timestamp int64       `json:"timestamp"`
 	Type      string      `json:"_t"`
 }
@@ -119,17 +118,17 @@ func CreateStation(id string, name string, stationType string, lat float64, lon 
 		Longitude:   lon,
 		Origin:      origin,
 		Id:          id,
-		// Metadata:    metaData,
-		// ParentStation:   parentStation,
+		// Metadata:      metaData,
+		// ParentStation: parentStation,
 	}
 	return station
 }
 
-func CreateRecord(value interface{}, period uint32) Record {
+func CreateRecord(ts int64, value interface{}, period uint64) Record {
 	// TODO add some checks
 	var record = Record{
 		Value:     value,
-		Timestamp: time.Now().Unix(),
+		Timestamp: ts,
 		Period:    period,
 		Type:      "it.bz.idm.bdp.dto.SimpleRecordDto",
 	}

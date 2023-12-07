@@ -3,13 +3,14 @@ package test
 import (
 	"helloworld/lib"
 	"log/slog"
+	"time"
 )
 
 const stationType string = "GolangTest"
 const stationCode string = "golang-test-id"
 const dataTypeId string = "data-type-golang-test"
 const origin string = "GolangUniverse"
-const period uint32 = 600
+const period uint64 = 600
 
 func TestJob() {
 	slog.Info("Cron job started...")
@@ -26,9 +27,10 @@ func TestJob() {
 	lib.SyncStations(stationType, stations)
 
 	// // test records
+	ts := time.Now().UnixMilli()
 	var records []lib.Record
 	for i := 1; i < 12; i++ {
-		record := lib.CreateRecord(12.7*float64(i), period)
+		record := lib.CreateRecord(ts, 12.7*float64(i), period)
 		records = append(records, record)
 	}
 
