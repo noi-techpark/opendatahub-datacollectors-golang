@@ -51,7 +51,7 @@ jobs:
           
           X_LOG_LEVEL: INFO
 
-          X_SCHEDULER_CRON: "0 */10 * * * *"
+          X_SCHEDULER_CRON: "0 0 */1 * * *"
           
 
       - name: Build go application
