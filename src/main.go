@@ -5,11 +5,13 @@
 package main
 
 import (
-	"helloworld/lib"
-	"helloworld/log"
 	"log/slog"
 	"os"
 	"time"
+
+	"helloworld/dc"
+	"helloworld/lib"
+	"helloworld/log"
 
 	"github.com/go-co-op/gocron"
 )
@@ -24,6 +26,8 @@ const PERIOD uint32 = 600
 func main() {
 	log.InitLogger()
 
+	dc.GetFile()
+
 	cron := os.Getenv("SCHEDULER_CRON")
 	slog.Debug("Cron defined as: " + cron)
 
@@ -32,8 +36,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	slog.Info("Start job for first time on startup now.")
-	job()
+	// slog.Info("Start job for first time on startup now.")
+	// testJob()
 
 	// start cron job
 	s := gocron.NewScheduler(time.UTC)
@@ -41,7 +45,7 @@ func main() {
 	s.StartBlocking()
 }
 
-func job() {
+func testJob() {
 	slog.Info("Cron job started...")
 	// test data types
 	var dataTypes []lib.DataType
@@ -69,4 +73,8 @@ func job() {
 	lib.PushData(STATION_TYPE, dataMap)
 
 	slog.Info("Cron job done.")
+}
+
+func job() {
+
 }
