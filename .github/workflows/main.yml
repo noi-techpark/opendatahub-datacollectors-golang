@@ -31,6 +31,13 @@ jobs:
           X_DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
           X_DOCKER_TAG: ${{ env.DOCKER_TAG }}
 
+          X_AWS_REGION: eu-west-1
+          X_AWS_FILE_NAME: SMOS_MCPL-WX_EXP_SIAG.JSON
+          X_AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
+
+          X_AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          X_AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+
           X_BASE_URI: https://mobility.share.opendatahub.testingmachine.eu/json
           X_OAUTH_AUTH_URI: https://auth.opendatahub.testingmachine.eu/auth
           X_OAUTH_TOKEN_URI: https://auth.opendatahub.testingmachine.eu/auth/realms/noi/protocol/openid-connect/token
@@ -45,6 +52,7 @@ jobs:
           X_LOG_LEVEL: INFO
 
           X_SCHEDULER_CRON: "0 */10 * * * *"
+          
 
       - name: Build go application
         run: go build -o main
