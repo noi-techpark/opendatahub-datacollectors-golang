@@ -5,7 +5,7 @@ on:
   pull_request:
 
 env:
-  PROJECT_NAME: dc-golang
+  PROJECT_NAME: odh-mobility-golang-dc-meteorology-bz-forecast
   DOCKER_IMAGE: ghcr.io/${{ github.repository }}/${{ github.event.repository.name }}
   DOCKER_TAG: ${{ github.sha }}
   GO_VERSION: ^1.21.4
@@ -46,8 +46,8 @@ jobs:
           X_OAUTH_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET_TEST }}
           X_OAUTH_CLIENT_SCOPE: openid
           
-          X_PROVENANCE_VERSION: 0.0.0
-          X_PROVENANCE_NAME: dc-golang-helloword
+          X_PROVENANCE_VERSION: ${{ github.sha }}
+          X_PROVENANCE_NAME: odh-mobility-golang-dc-meteorology-bz-forecast
           
           X_LOG_LEVEL: INFO
 
