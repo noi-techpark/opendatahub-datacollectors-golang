@@ -31,31 +31,15 @@ var token Token
 var tokenExpiry int64
 
 func GetToken() string {
+	newToken()
 	ts := time.Now().Unix()
 
-	if len(token.AccessToken) == 0 {
+	if len(token.AccessToken) == 0 || ts > tokenExpiry {
 		// if no token is available or refreshToken is expired, get new token
 		newToken()
-	} else if ts > tokenExpiry {
-		// if no token is expired, refresh it
-		refreshToken()
 	}
 
 	return token.AccessToken
-}
-
-func refreshToken() {
-	slog.Info("Refreshing token...")
-
-	params := url.Values{}
-	params.Add("client_id", clientId)
-	params.Add("client_secret", clientSecret)
-	params.Add("grant_type", `refresh_token`)
-	params.Add("refresh_token", token.RefreshToken)
-
-	authRequest(params)
-
-	slog.Info("Refreshing token done.")
 }
 
 func newToken() {
@@ -63,7 +47,7 @@ func newToken() {
 	params := url.Values{}
 	params.Add("client_id", clientId)
 	params.Add("client_secret", clientSecret)
-	params.Add("grant_type", `client_credentials`)
+	params.Add("grant_type", "client_credentials")
 
 	authRequest(params)
 
@@ -76,24 +60,31 @@ func authRequest(params url.Values) {
 	req, err := http.NewRequest("POST", tokenUri, body)
 	if err != nil {
 		slog.Error("error", err)
+		return
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		slog.Error("error", err)
+		return
 	}
 	defer resp.Body.Close()
 
+	slog.Info("Auth response code is: " + strconv.Itoa(resp.StatusCode))
 	if resp.StatusCode == http.StatusOK {
 		bodyBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			slog.Error("error", err)
+			return
 		}
 
 		err = json.Unmarshal(bodyBytes, &token)
 		if err != nil {
 			slog.Error("error", err)
+			return
+		} else {
+			slog.Info("New token assigned by refresh")
 		}
 	}
 
