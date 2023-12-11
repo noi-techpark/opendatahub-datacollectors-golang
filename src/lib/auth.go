@@ -82,8 +82,6 @@ func authRequest(params url.Values) {
 		if err != nil {
 			slog.Error("error", err)
 			return
-		} else {
-			slog.Info("New token assigned by refresh")
 		}
 	}
 
