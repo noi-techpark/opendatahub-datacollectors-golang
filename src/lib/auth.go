@@ -31,7 +31,6 @@ var token Token
 var tokenExpiry int64
 
 func GetToken() string {
-	newToken()
 	ts := time.Now().Unix()
 
 	if len(token.AccessToken) == 0 || ts > tokenExpiry {
