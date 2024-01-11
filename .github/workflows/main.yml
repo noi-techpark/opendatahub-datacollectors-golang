@@ -10,6 +10,7 @@ env:
   DOCKER_TAG: ${{ github.sha }}
   GO_VERSION: ^1.21.4
 
+
 jobs:
   deploy-test:
     runs-on: ubuntu-22.04
